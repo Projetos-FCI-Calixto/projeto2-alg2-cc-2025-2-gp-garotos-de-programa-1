@@ -143,9 +143,16 @@ int** read_manual(int* width, int* height) {
     return image;
 }
 
-// Função recursiva para codificar a imagem
+// Função recursiva para codificar a imagem (placeholder - você deve implementar)
 char* encode(int** image, int x1, int y1, int x2, int y2) {
-   
+    // TODO: Implementar a lógica recursiva de codificação
+    // Retornar uma string alocada dinamicamente com o código (P, B ou X + sub-códigos)
+    // Lembre-se de verificar se a subimagem é uniforme (todos 0 ou todos 1)
+    // Se não, dividir em 4 quadrantes e concatenar os códigos
+    // Usar malloc para strings e strcat para concatenação
+    // Exemplo básico (não funcional):
+    // if (uniforme) return strdup("P") ou "B";
+    // else return "X" + encode(q1) + encode(q2) + encode(q3) + encode(q4);
     return NULL;  // Placeholder
 }
 

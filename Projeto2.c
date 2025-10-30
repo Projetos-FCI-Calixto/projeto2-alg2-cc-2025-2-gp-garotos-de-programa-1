@@ -6,47 +6,47 @@
 #define MAX_WIDTH 1024
 #define MAX_HEIGHT 768
 
-// Fun√ß√£o para exibir o help
+// FunÁ„o para exibir o help
 void show_help() {
     printf("Uso: ImageEncoder [-? | -m | -f ARQ]\n");
-    printf("Codifica imagens bin√°rias dadas em arquivos PBM ou por dados informados manualmente.\n");
+    printf("Codifica imagens bin·rias dadas em arquivos PBM ou por dados informados manualmente.\n");
     printf("Argumentos:\n");
-    printf("  -?, --help   : apresenta essa orienta√ß√£o na tela.\n");
-    printf("  -m, --manual : ativa o modo de entrada manual, em que o usu√°rio fornece todos os dados da imagem informando-os atrav√©s do teclado.\n");
+    printf("  -?, --help   : apresenta essa orientaÁ„o na tela.\n");
+    printf("  -m, --manual : ativa o modo de entrada manual, em que o usu·rio fornece todos os dados da imagem informando-os atravÈs do teclado.\n");
     printf("  -f, --file   : considera a imagem representada no arquivo PBM (Portable Bitmap).\n");
 }
 
-// Fun√ß√£o para ler arquivo PBM e retornar a matriz de pixels
+// FunÁ„o para ler arquivo PBM e retornar a matriz de pixels
 int** read_pbm(const char* filename, int* width, int* height) {
     FILE* fp = fopen(filename, "r");
     if (!fp) {
-        fprintf(stderr, "Erro: n√£o foi poss√≠vel abrir o arquivo %s\n", filename);
+        fprintf(stderr, "Erro: n„o foi possÌvel abrir o arquivo %s\n", filename);
         return NULL;
     }
 
     char magic[3];
     if (fscanf(fp, "%2s", magic) != 1 || strcmp(magic, "P1") != 0) {
-        fprintf(stderr, "Erro: arquivo n√£o √© um PBM v√°lido (magic number P1 esperado)\n");
+        fprintf(stderr, "Erro: arquivo n„o È um PBM v·lido (magic number P1 esperado)\n");
         fclose(fp);
         return NULL;
     }
 
-    // Ignorar coment√°rios (linhas come√ßando com #)
+    // Ignorar coment·rios (linhas comeÁando com #)
     int ch;
     while ((ch = fgetc(fp)) == '#') {
         while ((ch = fgetc(fp)) != '\n' && ch != EOF);
     }
-    ungetc(ch, fp);  // Devolver o √∫ltimo caractere lido
+    ungetc(ch, fp);  // Devolver o ˙ltimo caractere lido
 
     // Ler largura e altura
     if (fscanf(fp, "%d %d", width, height) != 2) {
-        fprintf(stderr, "Erro: n√£o foi poss√≠vel ler largura e altura\n");
+        fprintf(stderr, "Erro: n„o foi possÌvel ler largura e altura\n");
         fclose(fp);
         return NULL;
     }
 
     if (*width <= 0 || *height <= 0 || *width > MAX_WIDTH || *height > MAX_HEIGHT) {
-        fprintf(stderr, "Erro: dimens√µes inv√°lidas (m√°x: %dx%d)\n", MAX_WIDTH, MAX_HEIGHT);
+        fprintf(stderr, "Erro: dimensıes inv·lidas (m·x: %dx%d)\n", MAX_WIDTH, MAX_HEIGHT);
         fclose(fp);
         return NULL;
     }
@@ -54,14 +54,14 @@ int** read_pbm(const char* filename, int* width, int* height) {
     // Alocar matriz
     int** image = (int**)malloc(*height * sizeof(int*));
     if (!image) {
-        fprintf(stderr, "Erro: falha na aloca√ß√£o de mem√≥ria\n");
+        fprintf(stderr, "Erro: falha na alocaÁ„o de memÛria\n");
         fclose(fp);
         return NULL;
     }
     for (int i = 0; i < *height; i++) {
         image[i] = (int*)malloc(*width * sizeof(int));
         if (!image[i]) {
-            fprintf(stderr, "Erro: falha na aloca√ß√£o de mem√≥ria\n");
+            fprintf(stderr, "Erro: falha na alocaÁ„o de memÛria\n");
             for (int j = 0; j < i; j++) free(image[j]);
             free(image);
             fclose(fp);
@@ -93,29 +93,29 @@ int** read_pbm(const char* filename, int* width, int* height) {
     return image;
 }
 
-// Fun√ß√£o para entrada manual de dados
+// FunÁ„o para entrada manual de dados
 int** read_manual(int* width, int* height) {
-    printf("Digite a largura e altura da imagem (separados por espa√ßo): ");
+    printf("Digite a largura e altura da imagem (separados por espaÁo): ");
     if (scanf("%d %d", width, height) != 2) {
-        fprintf(stderr, "Erro: entrada inv√°lida para largura e altura\n");
+        fprintf(stderr, "Erro: entrada inv·lida para largura e altura\n");
         return NULL;
     }
 
     if (*width <= 0 || *height <= 0 || *width > MAX_WIDTH || *height > MAX_HEIGHT) {
-        fprintf(stderr, "Erro: dimens√µes inv√°lidas (m√°x: %dx%d)\n", MAX_WIDTH, MAX_HEIGHT);
+        fprintf(stderr, "Erro: dimensıes inv·lidas (m·x: %dx%d)\n", MAX_WIDTH, MAX_HEIGHT);
         return NULL;
     }
 
     // Alocar matriz
     int** image = (int**)malloc(*height * sizeof(int*));
     if (!image) {
-        fprintf(stderr, "Erro: falha na aloca√ß√£o de mem√≥ria\n");
+        fprintf(stderr, "Erro: falha na alocaÁ„o de memÛria\n");
         return NULL;
     }
     for (int i = 0; i < *height; i++) {
         image[i] = (int*)malloc(*width * sizeof(int));
         if (!image[i]) {
-            fprintf(stderr, "Erro: falha na aloca√ß√£o de mem√≥ria\n");
+            fprintf(stderr, "Erro: falha na alocaÁ„o de memÛria\n");
             for (int j = 0; j < i; j++) free(image[j]);
             free(image);
             return NULL;
@@ -143,16 +143,9 @@ int** read_manual(int* width, int* height) {
     return image;
 }
 
-// Fun√ß√£o recursiva para codificar a imagem (placeholder - voc√™ deve implementar)
+// Fun√ß√£o recursiva para codificar a imagem
 char* encode(int** image, int x1, int y1, int x2, int y2) {
-    // TODO: Implementar a l√≥gica recursiva de codifica√ß√£o
-    // Retornar uma string alocada dinamicamente com o c√≥digo (P, B ou X + sub-c√≥digos)
-    // Lembre-se de verificar se a subimagem √© uniforme (todos 0 ou todos 1)
-    // Se n√£o, dividir em 4 quadrantes e concatenar os c√≥digos
-    // Usar malloc para strings e strcat para concatena√ß√£o
-    // Exemplo b√°sico (n√£o funcional):
-    // if (uniforme) return strdup("P") ou "B";
-    // else return "X" + encode(q1) + encode(q2) + encode(q3) + encode(q4);
+   
     return NULL;  // Placeholder
 }
 
@@ -165,6 +158,7 @@ int main(int argc, char* argv[]) {
     int** image = NULL;
     int width, height;
     char* code = NULL;
+    //criar 4 varaiaveis para armazenar as matrizes divididas 
 
     if (strcmp(argv[1], "-?") == 0 || strcmp(argv[1], "--help") == 0) {
         show_help();
@@ -175,7 +169,7 @@ int main(int argc, char* argv[]) {
         }
     } else if (strcmp(argv[1], "-f") == 0 || strcmp(argv[1], "--file") == 0) {
         if (argc < 3) {
-            fprintf(stderr, "Erro: nome do arquivo n√£o informado\n");
+            fprintf(stderr, "Erro: nome do arquivo n„o informado\n");
             return 1;
         }
         image = read_pbm(argv[2], &width, &height);
@@ -183,7 +177,7 @@ int main(int argc, char* argv[]) {
             code = encode(image, 0, 0, width - 1, height - 1);
         }
     } else {
-        fprintf(stderr, "Argumento inv√°lido\n");
+        fprintf(stderr, "Argumento inv·lido\n");
         show_help();
         return 1;
     }
@@ -193,7 +187,7 @@ int main(int argc, char* argv[]) {
         free(code);
     }
 
-    // Liberar mem√≥ria da imagem
+    // Liberar memÛria da imagem
     if (image) {
         for (int i = 0; i < height; i++) {
             free(image[i]);

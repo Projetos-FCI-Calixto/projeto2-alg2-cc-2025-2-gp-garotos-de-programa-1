@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 
 void codificar_imagem(int imagem_analise[][1024], int linha_inicial, int coluna_inicial, int altura, int largura){
     //Caso Base
@@ -68,4 +69,22 @@ void codificar_imagem(int imagem_analise[][1024], int linha_inicial, int coluna_
             printf("P"); //Imprime preto
         }
     }
+}
+
+int main(int argc, char *argv[]){
+    if (argc < 2){
+        printf("É necessário informar um comando após o nome do programa\n");
+        printf("Instruções:\n");
+        printf("-?, --help  : apresenta essa orientação na tela.\n");
+        printf("-m, --manual: ativa o modo de entrada manual, em que o usuário fornece todos os dados da imagem informando-os através do teclado.\n");
+        printf("-f, --file: considera a imagem representada no arquivo PBM (Portable bitmap).\n");
+    }
+    else if (argc > 2 )
+
+
+
+
+
+
+    return 0;
 }

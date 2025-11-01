@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-void decodificar_imagem(int imagem_analise[][1024], int linha_inicial, int coluna_inicial, int altura, int largura){
+void codificar_imagem(int imagem_analise[][1024], int linha_inicial, int coluna_inicial, int altura, int largura){
     //Caso Base
     //Guarda o primeiro pixel da imagem ou quadrante analisado
     int pixel_referencia = imagem_analise[linha_inicial][coluna_inicial];

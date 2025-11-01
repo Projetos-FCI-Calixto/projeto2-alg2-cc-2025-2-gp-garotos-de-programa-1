@@ -46,14 +46,18 @@ void decodificar_imagem(int imagem_analise[][1024], int linha_inicial, int colun
             //Quadrante 1 (superior esquerdo), começa da linha e coluna inicial, até a1 e l1 (altura superior e largura esquerda)
             decodificar_imagem(imagem_analise, linha_inicial, coluna_inicial, a1, l1);
         }
-        //Parando aqui, tenho que verificar ambas a1 e l1, e depois a2 e l2, só com dois blocos e colocar as chamas recursivas dentro dela?
-        //Quadrante 2 (superior direito), começa da linha inicial e coluna inicial + l1 (largura da esquerda), até a1 e l2 (altura superior e largura direita)
-        decodificar_imagem(imagem_analise, linha_inicial, coluna_inicial + l1, a1, l2);
-        //Quadrante 3 (inferior esquerdo), começa da linha inicial + a1 (altura superior) e coluna inicial, até a2 e l1 (altura inferior e largura esquerda)
-        decodificar_imagem(imagem_analise,linha_inicial + a1, coluna_inicial, a2, l1);
-        //Quadrante 4 (inferior direito), começa da linha inicial + a1 e coluna inicial + l1, até a2 e l2 (altura inferior e largura direita)
-        decodificar_imagem(imagem_analise, linha_inicial + a1, coluna_inicial + l1, a2, l2);
-
+        if (a1 > 0 && l2 > 0){
+            //Quadrante 2 (superior direito), começa da linha inicial e coluna inicial + l1 (largura da esquerda), até a1 e l2 (altura superior e largura direita)
+            decodificar_imagem(imagem_analise, linha_inicial, coluna_inicial + l1, a1, l2);
+        }
+        if (a2 > 0 && l1 > 0){
+            //Quadrante 3 (inferior esquerdo), começa da linha inicial + a1 (altura superior) e coluna inicial, até a2 e l1 (altura inferior e largura esquerda)
+            decodificar_imagem(imagem_analise,linha_inicial + a1, coluna_inicial, a2, l1);
+        }
+        if (a2 > 0 && l2 > 0){
+            //Quadrante 4 (inferior direito), começa da linha inicial + a1 e coluna inicial + l1, até a2 e l2 (altura inferior e largura direita)
+            decodificar_imagem(imagem_analise, linha_inicial + a1, coluna_inicial + l1, a2, l2);
+        }
     }
     //Se a sequência for uniforme
     else{

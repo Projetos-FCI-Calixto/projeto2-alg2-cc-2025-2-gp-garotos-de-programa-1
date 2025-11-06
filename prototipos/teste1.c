@@ -2,18 +2,18 @@
 #include <stdbool.h>
 #include <string.h>
 
-void codificar_imagem(int imagem_analise[][1024], int linha_inicial, int coluna_inicial, int altura, int largura){
+void decodificar_imagem(int imagem_analise[][1024], int linha_inicial, int coluna_inicial, int altura, int largura){
     //Caso Base
     //Guarda o primeiro pixel da imagem ou quadrante analisado
     int pixel_referencia = imagem_analise[linha_inicial][coluna_inicial];
-    //Variavel para guardar se é uma sequência uniforme
+    //Variavel para guardar se Ã© uma sequÃªncia uniforme
     bool ehuniforme = true;
     //Percorrer a matriz(imagem original)
     //Percorrer as linhas da matriz 
     for (int i = linha_inicial; i < linha_inicial + altura; i++){
         //Percorrer as colunas da matriz
         for (int j = coluna_inicial; j < coluna_inicial + largura; j++){
-            //Se a sequência não for uniforme
+            //Se a sequÃªncia nÃ£o for uniforme
             if (pixel_referencia != imagem_analise[i][j]){
                 ehuniforme = false;
                 break; //Para o loop j ao encontrar um pixel diferente
@@ -24,11 +24,11 @@ void codificar_imagem(int imagem_analise[][1024], int linha_inicial, int coluna_
             break; //Para o loop i ao encontrar um pixel diferente
         }
     }
-    //Se a sequência não for uniforme
+    //Se a sequÃªncia nÃ£o for uniforme
     if (ehuniforme == false){
-        //Imprime 'X' sequência mista
+        //Imprime 'X' sequÃªncia mista
         printf("X");
-        //Dividir a matriz em 4 quadrantes (matrizes menores) utilizando  recursão
+        //Dividir a matriz em 4 quadrantes (matrizes menores) utilizando  recursÃ£o
         //declarar as alturas e larguras
         //altura para Q1 e Q2, superiores
         int a1 = (altura + 1) / 2; //Se altura for impar, deixa a maior parte para cima
@@ -41,26 +41,26 @@ void codificar_imagem(int imagem_analise[][1024], int linha_inicial, int coluna_
 
         //chamadas recursivas para todos os quadrantes
 
-        //Verificar se as variaveis de altura e largura são maiores do que 0, para cada quadrante 
+        //Verificar se as variaveis de altura e largura sÃ£o maiores do que 0, para cada quadrante 
 
         if (a1 > 0 && l1 > 0){ //se a altura superior e a largura esquerda forem maiores do que 0
-            //Quadrante 1 (superior esquerdo), começa da linha e coluna inicial, até a1 e l1 (altura superior e largura esquerda)
+            //Quadrante 1 (superior esquerdo), comeÃ§a da linha e coluna inicial, atÃ© a1 e l1 (altura superior e largura esquerda)
             decodificar_imagem(imagem_analise, linha_inicial, coluna_inicial, a1, l1);
         }
         if (a1 > 0 && l2 > 0){ //se a altura superior e a largura direita forem maiores do que 0
-            //Quadrante 2 (superior direito), começa da linha inicial e coluna inicial + l1 (largura da esquerda), até a1 e l2 (altura superior e largura direita)
+            //Quadrante 2 (superior direito), comeÃ§a da linha inicial e coluna inicial + l1 (largura da esquerda), atÃ© a1 e l2 (altura superior e largura direita)
             decodificar_imagem(imagem_analise, linha_inicial, coluna_inicial + l1, a1, l2);
         }
         if (a2 > 0 && l1 > 0){ //se a altura inferior e a largura esquerda forem maiores do que 0
-            //Quadrante 3 (inferior esquerdo), começa da linha inicial + a1 (altura superior) e coluna inicial, até a2 e l1 (altura inferior e largura esquerda)
+            //Quadrante 3 (inferior esquerdo), comeÃ§a da linha inicial + a1 (altura superior) e coluna inicial, atÃ© a2 e l1 (altura inferior e largura esquerda)
             decodificar_imagem(imagem_analise,linha_inicial + a1, coluna_inicial, a2, l1);
         }
         if (a2 > 0 && l2 > 0){ //se a altura inferior e a largura direita forem maiores do que 0
-            //Quadrante 4 (inferior direito), começa da linha inicial + a1 e coluna inicial + l1, até a2 e l2 (altura inferior e largura direita)
+            //Quadrante 4 (inferior direito), comeÃ§a da linha inicial + a1 e coluna inicial + l1, atÃ© a2 e l2 (altura inferior e largura direita)
             decodificar_imagem(imagem_analise, linha_inicial + a1, coluna_inicial + l1, a2, l2);
         }
     }
-    //Se a sequência for uniforme
+    //Se a sequÃªncia for uniforme
     else{
         if (pixel_referencia == 0){ //Se for somente 0
             printf("B"); //Imprime branco
@@ -73,10 +73,10 @@ void codificar_imagem(int imagem_analise[][1024], int linha_inicial, int coluna_
 
 int main(int argc, char *argv[]){
     if (argc < 2){
-        printf("É necessário informar um comando após o nome do programa\n");
-        printf("Instruções:\n");
-        printf("-?, --help  : apresenta essa orientação na tela.\n");
-        printf("-m, --manual: ativa o modo de entrada manual, em que o usuário fornece todos os dados da imagem informando-os através do teclado.\n");
+        printf("Ã‰ necessÃ¡rio informar um comando apÃ³s o nome do programa\n");
+        printf("InstruÃ§Ãµes:\n");
+        printf("-?, --help  : apresenta essa orientaÃ§Ã£o na tela.\n");
+        printf("-m, --manual: ativa o modo de entrada manual, em que o usuÃ¡rio fornece todos os dados da imagem informando-os atravÃ©s do teclado.\n");
         printf("-f, --file: considera a imagem representada no arquivo PBM (Portable bitmap).\n");
     }
     else if (argc > 2 )

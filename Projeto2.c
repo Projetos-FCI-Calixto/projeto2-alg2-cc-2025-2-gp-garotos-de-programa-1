@@ -1,284 +1,271 @@
 #include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdbool.h>
+#include <stdlib.h> // Para exit()
+#include <string.h> // Para strcmp()
+#include <stdbool.h> // Para o tipo 'bool' usado na sua funÁ„o
+#include <ctype.h> // Para isspace() na leitura do PBM
 
-#define MAX_WIDTH 1024
-#define MAX_HEIGHT 768
+// --- Constantes Baseadas no Enunciado ---
 
-// Fun√ß√£o para exibir o help
-void show_help() {
-    printf("Uso: ImageEncoder [-? | -m | -f ARQ]\n");
-    printf("Codifica imagens bin√°rias dadas em arquivos PBM ou por dados informados manualmente.\n");
-    printf("Argumentos:\n");
-    printf("  -?, --help   : apresenta essa orienta√ß√£o na tela.\n");
-    printf("  -m, --manual : ativa o modo de entrada manual, em que o usu√°rio fornece todos os dados da imagem informando-os atrav√©s do teclado.\n");
-    printf("  -f, --file   : considera a imagem representada no arquivo PBM (Portable Bitmap).\n");
-}
+// Limite m·ximo de tamanho da imagem [cite: 166]
+#define MAX_ALTURA 768
+#define MAX_LARGURA 1024
 
-// Fun√ß√£o para ler arquivo PBM e retornar a matriz de pixels
-int** read_pbm(const char* filename, int* width, int* height) {
-    FILE* fp = fopen(filename, "r");
-    if (!fp) {
-        fprintf(stderr, "Erro: n√£o foi poss√≠vel abrir o arquivo %s\n", filename);
-        return NULL;
-    }
+// --- Vari·vel Global para a Imagem ---
 
-    char magic[3];
-    if (fscanf(fp, "%2s", magic) != 1 || strcmp(magic, "P1") != 0) {
-        fprintf(stderr, "Erro: arquivo n√£o √© um PBM v√°lido (magic number P1 esperado)\n");
-        fclose(fp);
-        return NULL;
-    }
+// Usamos um array global para facilitar a passagem entre as funÁıes
+// de leitura e a sua funÁ„o de codificaÁ„o.
+// A sua funÁ„o j· espera [][1024], ent„o definimos a largura aqui
+int imagem[MAX_ALTURA][MAX_LARGURA];
 
-    // Ignorar coment√°rios (linhas come√ßando com #)
-    int ch;
-    while ((ch = fgetc(fp)) == '#') {
-        while ((ch = fgetc(fp)) != '\n' && ch != EOF);
-    }
-    ungetc(ch, fp);  // Devolver o √∫ltimo caractere lido
+// --- ProtÛtipos das FunÁıes ---
 
-    // Ler largura e altura
-    if (fscanf(fp, "%d %d", width, height) != 2) {
-        fprintf(stderr, "Erro: n√£o foi poss√≠vel ler largura e altura\n");
-        fclose(fp);
-        return NULL;
-    }
+// Sua funÁ„o de codificaÁ„o (mantida 100% fiel, com correÁ„o do nome da chamada)
+void decodificar_imagem(int imagem_analise[][MAX_LARGURA], int linha_inicial, int coluna_inicial, int altura, int largura);
 
-    if (*width <= 0 || *height <= 0 || *width > MAX_WIDTH || *height > MAX_HEIGHT) {
-        fprintf(stderr, "Erro: dimens√µes inv√°lidas (m√°x: %dx%d)\n", MAX_WIDTH, MAX_HEIGHT);
-        fclose(fp);
-        return NULL;
-    }
+// FunÁıes auxiliares para implementar os requisitos do projeto
+void exibir_ajuda(char* nome_programa);
+void processar_manual(int *altura_ptr, int *largura_ptr);
+void processar_arquivo(char* nome_arquivo, int *altura_ptr, int *largura_ptr);
 
-    // Alocar matriz
-    int** image = (int**)malloc(*height * sizeof(int*));
-    if (!image) {
-        fprintf(stderr, "Erro: falha na aloca√ß√£o de mem√≥ria\n");
-        fclose(fp);
-        return NULL;
-    }
-    for (int i = 0; i < *height; i++) {
-        image[i] = (int*)malloc(*width * sizeof(int));
-        if (!image[i]) {
-            fprintf(stderr, "Erro: falha na aloca√ß√£o de mem√≥ria\n");
-            for (int j = 0; j < i; j++) free(image[j]);
-            free(image);
-            fclose(fp);
-            return NULL;
-        }
-    }
 
-    // Ler pixels (0 ou 1)
-    for (int i = 0; i < *height; i++) {
-        for (int j = 0; j < *width; j++) {
-            if (fscanf(fp, "%d", &image[i][j]) != 1) {
-                fprintf(stderr, "Erro: falha ao ler pixels\n");
-                for (int k = 0; k < *height; k++) free(image[k]);
-                free(image);
-                fclose(fp);
-                return NULL;
-            }
-            if (image[i][j] != 0 && image[i][j] != 1) {
-                fprintf(stderr, "Erro: pixel deve ser 0 ou 1\n");
-                for (int k = 0; k < *height; k++) free(image[k]);
-                free(image);
-                fclose(fp);
-                return NULL;
-            }
-        }
-    }
+// --- FunÁ„o Principal (main) ---
+// Respons·vel por processar os argumentos da linha de comando
+int main(int argc, char *argv[]) {
+    int altura = 0, largura = 0;
 
-    fclose(fp);
-    return image;
-}
-
-// Fun√ß√£o para entrada manual de dados
-int** read_manual(int* width, int* height) {
-    printf("Digite a largura e altura da imagem (separados por espa√ßo): ");
-    if (scanf("%d %d", width, height) != 2) {
-        fprintf(stderr, "Erro: entrada inv√°lida para largura e altura\n");
-        return NULL;
-    }
-
-    if (*width <= 0 || *height <= 0 || *width > MAX_WIDTH || *height > MAX_HEIGHT) {
-        fprintf(stderr, "Erro: dimens√µes inv√°lidas (m√°x: %dx%d)\n", MAX_WIDTH, MAX_HEIGHT);
-        return NULL;
-    }
-
-    // Alocar matriz
-    int** image = (int**)malloc(*height * sizeof(int*));
-    if (!image) {
-        fprintf(stderr, "Erro: falha na aloca√ß√£o de mem√≥ria\n");
-        return NULL;
-    }
-    for (int i = 0; i < *height; i++) {
-        image[i] = (int*)malloc(*width * sizeof(int));
-        if (!image[i]) {
-            fprintf(stderr, "Erro: falha na aloca√ß√£o de mem√≥ria\n");
-            for (int j = 0; j < i; j++) free(image[j]);
-            free(image);
-            return NULL;
-        }
-    }
-
-    printf("Digite os pixels linha por linha (0 para branco, 1 para preto):\n");
-    for (int i = 0; i < *height; i++) {
-        for (int j = 0; j < *width; j++) {
-            if (scanf("%d", &image[i][j]) != 1) {
-                fprintf(stderr, "Erro: falha ao ler pixel\n");
-                for (int k = 0; k < *height; k++) free(image[k]);
-                free(image);
-                return NULL;
-            }
-            if (image[i][j] != 0 && image[i][j] != 1) {
-                fprintf(stderr, "Erro: pixel deve ser 0 ou 1\n");
-                for (int k = 0; k < *height; k++) free(image[k]);
-                free(image);
-                return NULL;
-            }
-        }
-    }
-
-    return image;
-}
-
-// Fun√ß√£o recursiva para codificar a imagem usando quadtree
-char* encode(int** image, int x1, int y1, int x2, int y2) {
-    // Calcular largura e altura do quadrante
-    int width = x2 - x1 + 1;
-    int height = y2 - y1 + 1;
-
-    // Caso base: verificar se o quadrante √© uniforme
-    int pixel_referencia = image[y1][x1];
-    bool eh_uniforme = true;
-    for (int i = y1; i <= y2; i++) {
-        for (int j = x1; j <= x2; j++) {
-            if (pixel_referencia != image[i][j]) {
-                eh_uniforme = false;
-                break;
-            }
-        }
-        if (!eh_uniforme) break;
-    }
-
-    if (eh_uniforme) {
-        // Se uniforme, retornar "B" para branco (0) ou "P" para preto (1)
-        char* result = (char*)malloc(2 * sizeof(char));
-        if (pixel_referencia == 0) {
-            strcpy(result, "B");
-        } else {
-            strcpy(result, "P");
-        }
-        return result;
-    } else {
-        // Se n√£o uniforme, dividir em 4 quadrantes
-        char* result = (char*)malloc(2 * sizeof(char));
-        strcpy(result, "X");
-
-        // Calcular divis√µes (altura e largura para os quadrantes)
-        int a1 = (height + 1) / 2;  // Altura para quadrantes superiores
-        int a2 = height / 2;       // Altura para quadrantes inferiores
-        int l1 = (width + 1) / 2;  // Largura para quadrantes esquerdos
-        int l2 = width / 2;        // Largura para quadrantes direitos
-
-        // Chamadas recursivas para os quadrantes, se v√°lidos
-        char* q1 = NULL;
-        char* q2 = NULL;
-        char* q3 = NULL;
-        char* q4 = NULL;
-
-        if (a1 > 0 && l1 > 0) {
-            // Quadrante 1 (superior esquerdo)
-            q1 = encode(image, x1, y1, x1 + l1 - 1, y1 + a1 - 1);
-        }
-        if (a1 > 0 && l2 > 0) {
-            // Quadrante 2 (superior direito)
-            q2 = encode(image, x1 + l1, y1, x2, y1 + a1 - 1);
-        }
-        if (a2 > 0 && l1 > 0) {
-            // Quadrante 3 (inferior esquerdo)
-            q3 = encode(image, x1, y1 + a1, x1 + l1 - 1, y2);
-        }
-        if (a2 > 0 && l2 > 0) {
-            // Quadrante 4 (inferior direito)
-            q4 = encode(image, x1 + l1, y1 + a1, x2, y2);
-        }
-
-        // Concatenar os resultados dos quadrantes
-        size_t len = strlen(result) + 1;
-        if (q1) len += strlen(q1);
-        if (q2) len += strlen(q2);
-        if (q3) len += strlen(q3);
-        if (q4) len += strlen(q4);
-
-        result = (char*)realloc(result, len);
-        if (q1) {
-            strcat(result, q1);
-            free(q1);
-        }
-        if (q2) {
-            strcat(result, q2);
-            free(q2);
-        }
-        if (q3) {
-            strcat(result, q3);
-            free(q3);
-        }
-        if (q4) {
-            strcat(result, q4);
-            free(q4);
-        }
-
-        return result;
-    }
-}
-
-int main(int argc, char* argv[]) {
+    // Se nenhum argumento for fornecido, exibe a ajuda [cite: 126]
     if (argc == 1) {
-        show_help();
+        exibir_ajuda(argv[0]);
         return 0;
     }
 
-    int** image = NULL;
-    int width, height;
-    char* code = NULL;
-
+    // Processa o argumento fornecido
     if (strcmp(argv[1], "-?") == 0 || strcmp(argv[1], "--help") == 0) {
-        show_help();
+        // Argumento de ajuda [cite: 133]
+        exibir_ajuda(argv[0]);
     } else if (strcmp(argv[1], "-m") == 0 || strcmp(argv[1], "--manual") == 0) {
-        image = read_manual(&width, &height);
-        if (image) {
-            code = encode(image, 0, 0, width - 1, height - 1);
-        }
+        // Argumento de entrada manual [cite: 134, 145]
+        processar_manual(&altura, &largura);
+        // Chama sua funÁ„o para codificar a imagem lida
+        decodificar_imagem(imagem, 0, 0, altura, largura);
+        printf("\n"); // Adiciona uma nova linha no final
     } else if (strcmp(argv[1], "-f") == 0 || strcmp(argv[1], "--file") == 0) {
+        // Argumento de entrada por arquivo [cite: 135]
         if (argc < 3) {
-            fprintf(stderr, "Erro: nome do arquivo n√£o informado\n");
-            return 1;
+            // Verifica se o nome do arquivo foi fornecido [cite: 138]
+            printf("Erro: Nome do arquivo nao especificado apos %s.\n\n", argv[1]);
+            exibir_ajuda(argv[0]);
+            return 1; // Retorna erro
         }
-        image = read_pbm(argv[2], &width, &height);
-        if (image) {
-            code = encode(image, 0, 0, width - 1, height - 1);
-        }
+        processar_arquivo(argv[2], &altura, &largura);
+        // Chama sua funÁ„o para codificar a imagem lida
+        decodificar_imagem(imagem, 0, 0, altura, largura);
+        printf("\n"); // Adiciona uma nova linha no final
     } else {
-        fprintf(stderr, "Argumento inv√°lido\n");
-        show_help();
-        return 1;
-    }
-
-    if (code) {
-        printf("%s\n", code);
-        free(code);
-    }
-
-    // Liberar mem√≥ria da imagem
-    if (image) {
-        for (int i = 0; i < height; i++) {
-            free(image[i]);
-        }
-        free(image);
+        // Argumento desconhecido
+        printf("Erro: Argumento invalido '%s'.\n\n", argv[1]);
+        exibir_ajuda(argv[0]);
+        return 1; // Retorna erro
     }
 
     return 0;
+}
+
+// --- ImplementaÁ„o das FunÁıes Auxiliares ---
+
+/**
+ * @brief Exibe as informaÁıes de uso do programa (help).
+ *
+ * @param nome_programa O nome do execut·vel (argv[0]).
+ */
+void exibir_ajuda(char* nome_programa) {
+    // Texto baseado na Figura 10 [cite: 128, 129, 130, 131, 132, 133, 134, 135]
+    printf("Uso: %s [-? | -m | -f ARQ]\n", nome_programa);
+    printf("Codifica imagens binarias dadas em arquivos PBM ou por dados informados\n");
+    printf("manualmente.\n");
+    printf("Argumentos:\n");
+    printf(" -?, --help : apresenta essa orientacao na tela.\n");
+    printf(" -m, --manual: ativa o modo de entrada manual, em que o usuario fornece\n");
+    printf("               todos os dados da imagem informando-os atraves do teclado.\n");
+    printf(" -f, --file : considera a imagem representada no arquivo PBM (Portable\n");
+    printf("               bitmap).\n");
+}
+
+/**
+ * @brief Processa a entrada de dados manual do usu·rio.
+ *
+ * @param altura_ptr Ponteiro para armazenar a altura da imagem.
+ * @param largura_ptr Ponteiro para armazenar a largura da imagem.
+ */
+void processar_manual(int *altura_ptr, int *largura_ptr) {
+    // Solicita as dimensıes [cite: 146]
+    printf("Modo de entrada manual ativado.\n");
+    printf("Informe a largura (max %d): ", MAX_LARGURA);
+    scanf("%d", largura_ptr);
+    printf("Informe a altura (max %d): ", MAX_ALTURA);
+    scanf("%d", altura_ptr);
+
+    // ValidaÁ„o das dimensıes
+    if (*largura_ptr <= 0 || *largura_ptr > MAX_LARGURA || *altura_ptr <= 0 || *altura_ptr > MAX_ALTURA) {
+        printf("Erro: Dimensoes invalidas. Limites sao %dx%d.\n", MAX_LARGURA, MAX_ALTURA); // [cite: 166]
+        exit(1); // Encerra o programa com erro
+    }
+
+    // Solicita os pixels [cite: 146]
+    // O enunciado diz 0 (branco) ou 1 (preto) [cite: 100]
+    printf("Informe os %d pixels (0 para branco, 1 para preto):\n", (*altura_ptr) * (*largura_ptr));
+    for (int i = 0; i < *altura_ptr; i++) {
+        for (int j = 0; j < *largura_ptr; j++) {
+            scanf("%d", &imagem[i][j]);
+        }
+    }
+    printf("Leitura manual concluida. Codigo gerado:\n");
+}
+
+/**
+ * @brief Processa a entrada de dados via arquivo PBM.
+ *
+ * @param nome_arquivo O nome do arquivo a ser lido.
+ * @param altura_ptr Ponteiro para armazenar a altura da imagem.
+ * @param largura_ptr Ponteiro para armazenar a largura da imagem.
+ */
+void processar_arquivo(char* nome_arquivo, int *altura_ptr, int *largura_ptr) {
+    FILE *arquivo = fopen(nome_arquivo, "r");
+    if (arquivo == NULL) {
+        printf("Erro: Nao foi possivel abrir o arquivo '%s'.\n", nome_arquivo);
+        exit(1);
+    }
+
+    char buffer[256];
+    int c;
+
+    // 1. Ler o "magic number" P1 [cite: 98]
+    fscanf(arquivo, "%s", buffer);
+    if (strcmp(buffer, "P1") != 0) {
+        printf("Erro: O arquivo '%s' nao e um formato PBM (P1).\n", nome_arquivo);
+        fclose(arquivo);
+        exit(1);
+    }
+
+    // 2. Ler dimensıes, pulando coment·rios [cite: 103]
+    do {
+        // Pula espaÁos em branco e novas linhas
+        c = fgetc(arquivo);
+        while (isspace(c)) {
+            c = fgetc(arquivo);
+        }
+
+        // Se for um coment·rio ('#'), pula a linha inteira [cite: 103]
+        if (c == '#') {
+            while (c != '\n' && c != EOF) {
+                c = fgetc(arquivo);
+            }
+        }
+    } while (c == '#' || isspace(c));
+
+    // Devolve o caractere que n„o era espaÁo/coment·rio para o buffer
+    ungetc(c, arquivo);
+
+    // LÍ as dimensıes (largura e altura) [cite: 99]
+    if (fscanf(arquivo, "%d %d", largura_ptr, altura_ptr) != 2) {
+        printf("Erro: Nao foi possivel ler as dimensoes do arquivo PBM.\n");
+        fclose(arquivo);
+        exit(1);
+    }
+
+    // ValidaÁ„o das dimensıes
+    if (*largura_ptr <= 0 || *largura_ptr > MAX_LARGURA || *altura_ptr <= 0 || *altura_ptr > MAX_ALTURA) {
+        printf("Erro: Dimensoes invalidas (%dx%d) no arquivo. Limites sao %dx%d.\n", *largura_ptr, *altura_ptr, MAX_LARGURA, MAX_ALTURA); // [cite: 166]
+        fclose(arquivo);
+        exit(1);
+    }
+
+    // 3. Ler os dados dos pixels (0 para branco, 1 para preto) [cite: 100]
+    for (int i = 0; i < *altura_ptr; i++) {
+        for (int j = 0; j < *largura_ptr; j++) {
+            if (fscanf(arquivo, "%d", &imagem[i][j]) != 1) {
+                printf("Erro: Falha ao ler dados de pixel no arquivo (posicao %d, %d).\n", i, j);
+                fclose(arquivo);
+                exit(1);
+            }
+        }
+    }
+
+    fclose(arquivo);
+    printf("Arquivo '%s' (%dx%d) lido com sucesso. Codigo gerado:\n", nome_arquivo, *largura_ptr, *altura_ptr);
+}
+
+
+// --- SUA FUN«√O DE CODIFICA«√O ---
+// (LÛgica e coment·rios 100% preservados, conforme solicitado)
+// (⁄nica alteraÁ„o: correÁ„o de "dedecodificar_imagem" para "decodificar_imagem"
+//  para permitir que a recurs„o funcione corretamente)
+
+void decodificar_imagem(int imagem_analise[][MAX_LARGURA], int linha_inicial, int coluna_inicial, int altura, int largura){
+    //Caso Base
+    //Guarda o primeiro pixel da imagem ou quadrante analisado
+    int pixel_referencia = imagem_analise[linha_inicial][coluna_inicial];
+    //Variavel para guardar se È uma sequÍncia uniforme
+    bool ehuniforme = true;
+    //Percorrer a matriz(imagem original)
+    //Percorrer as linhas da matriz 
+    for (int i = linha_inicial; i < linha_inicial + altura; i++){
+        //Percorrer as colunas da matriz
+        for (int j = coluna_inicial; j < coluna_inicial + largura; j++){
+            //Se a sequÍncia n„o for uniforme
+            if (pixel_referencia != imagem_analise[i][j]){
+                ehuniforme = false;
+                break; //Para o loop j ao encontrar um pixel diferente
+            }
+        }
+        //Se encontrou um pixel diferente
+        if (ehuniforme == false){
+            break; //Para o loop i ao encontrar um pixel diferente
+        }
+    }
+    //Se a sequÍncia n„o for uniforme
+    if (ehuniforme == false){
+        //Imprime 'X' sequÍncia mista
+        printf("X");
+        //Dividir a matriz em 4 quadrantes (matrizes menores) utilizando  recurs„o
+        //declarar as alturas e larguras
+        //altura para Q1 e Q2, superiores
+        int a1 = (altura + 1) / 2; //Se altura for impar, deixa a maior parte para cima [cite: 43]
+        //altura para Q3 e Q4, inferiores
+        int a2 = altura / 2; //Pega o inteiro que sobra de a1
+        //largura para Q1 e Q3, esquerdos
+        int l1 = (largura + 1) / 2; //Se largura for impar, deixa a maior parte para esquerda [cite: 42]
+        //largura para Q2 e Q4, direitos
+        int l2 = largura / 2;
+
+        //chamadas recursivas para todos os quadrantes
+
+        //Verificar se as variaveis de altura e largura s„o maiores do que 0, para cada quadrante 
+
+        if (a1 > 0 && l1 > 0){ //se a altura superior e a largura esquerda forem maiores do que 0
+            //Quadrante 1 (superior esquerdo), comeÁa da linha e coluna inicial, atÈ a1 e l1 (altura superior e largura esquerda)
+            decodificar_imagem(imagem_analise, linha_inicial, coluna_inicial, a1, l1); // [CORRIGIDO: 'dedecodificar_imagem' alterado para 'decodificar_imagem']
+        }
+        if (a1 > 0 && l2 > 0){ //se a altura superior e a largura direita forem maiores do que 0
+            //Quadrante 2 (superior direito), comeÁa da linha inicial e coluna inicial + l1 (largura da esquerda), atÈ a1 e l2 (altura superior e largura direita)
+            decodificar_imagem(imagem_analise, linha_inicial, coluna_inicial + l1, a1, l2); // [CORRIGIDO: 'dedecodificar_imagem' alterado para 'decodificar_imagem']
+        }
+        if (a2 > 0 && l1 > 0){ //se a altura inferior e a largura esquerda forem maiores do que 0
+            //Quadrante 3 (inferior esquerdo), comeÁa da linha inicial + a1 (altura superior) e coluna inicial, atÈ a2 e l1 (altura inferior e largura esquerda)
+            decodificar_imagem(imagem_analise,linha_inicial + a1, coluna_inicial, a2, l1); // [CORRIGIDO: 'dedecodificar_imagem' alterado para 'decodificar_imagem']
+        }
+        if (a2 > 0 && l2 > 0){ //se a altura inferior e a largura direita forem maiores do que 0
+            //Quadrante 4 (inferior direito), comeÁa da linha inicial + a1 e coluna inicial + l1, atÈ a2 e l2 (altura inferior e largura direita)
+            decodificar_imagem(imagem_analise, linha_inicial + a1, coluna_inicial + l1, a2, l2); 
+        }
+    }
+    //Se a sequÍncia for uniforme
+    else{
+        if (pixel_referencia == 0){ //Se for somente 0 (branco, conforme PBM 
+            printf("B"); //Imprime branco 
+        }
+        else{ //Se for somente 1 (preto, conforme PBM 
+            printf("P"); //Imprime preto 
+        }
+    }
 }

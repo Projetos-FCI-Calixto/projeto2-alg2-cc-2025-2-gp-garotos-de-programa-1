@@ -198,7 +198,6 @@ void processar_arquivo(char* nome_arquivo, int *altura_ptr, int *largura_ptr) {
 
 // --- SUA FUNÇÃO DE CODIFICAÇÃO ---
 // (Lógica e comentários 100% preservados, conforme solicitado)
-// (Única alteração: correção de "dedecodificar_imagem" para "decodificar_imagem"
 //  para permitir que a recursão funcione corretamente)
 
 void decodificar_imagem(int imagem_analise[][MAX_LARGURA], int linha_inicial, int coluna_inicial, int altura, int largura){
@@ -230,11 +229,11 @@ void decodificar_imagem(int imagem_analise[][MAX_LARGURA], int linha_inicial, in
         //Dividir a matriz em 4 quadrantes (matrizes menores) utilizando  recursão
         //declarar as alturas e larguras
         //altura para Q1 e Q2, superiores
-        int a1 = (altura + 1) / 2; //Se altura for impar, deixa a maior parte para cima [cite: 43]
+        int a1 = (altura + 1) / 2; //Se altura for impar, deixa a maior parte para cima 
         //altura para Q3 e Q4, inferiores
         int a2 = altura / 2; //Pega o inteiro que sobra de a1
         //largura para Q1 e Q3, esquerdos
-        int l1 = (largura + 1) / 2; //Se largura for impar, deixa a maior parte para esquerda [cite: 42]
+        int l1 = (largura + 1) / 2; //Se largura for impar, deixa a maior parte para esquerda 
         //largura para Q2 e Q4, direitos
         int l2 = largura / 2;
 
@@ -244,15 +243,15 @@ void decodificar_imagem(int imagem_analise[][MAX_LARGURA], int linha_inicial, in
 
         if (a1 > 0 && l1 > 0){ //se a altura superior e a largura esquerda forem maiores do que 0
             //Quadrante 1 (superior esquerdo), começa da linha e coluna inicial, até a1 e l1 (altura superior e largura esquerda)
-            decodificar_imagem(imagem_analise, linha_inicial, coluna_inicial, a1, l1); // [CORRIGIDO: 'dedecodificar_imagem' alterado para 'decodificar_imagem']
-        }
+            decodificar_imagem(imagem_analise, linha_inicial, coluna_inicial, a1, l1); // 
+
         if (a1 > 0 && l2 > 0){ //se a altura superior e a largura direita forem maiores do que 0
             //Quadrante 2 (superior direito), começa da linha inicial e coluna inicial + l1 (largura da esquerda), até a1 e l2 (altura superior e largura direita)
-            decodificar_imagem(imagem_analise, linha_inicial, coluna_inicial + l1, a1, l2); // [CORRIGIDO: 'dedecodificar_imagem' alterado para 'decodificar_imagem']
+            decodificar_imagem(imagem_analise, linha_inicial, coluna_inicial + l1, a1, l2); // 
         }
         if (a2 > 0 && l1 > 0){ //se a altura inferior e a largura esquerda forem maiores do que 0
             //Quadrante 3 (inferior esquerdo), começa da linha inicial + a1 (altura superior) e coluna inicial, até a2 e l1 (altura inferior e largura esquerda)
-            decodificar_imagem(imagem_analise,linha_inicial + a1, coluna_inicial, a2, l1); // [CORRIGIDO: 'dedecodificar_imagem' alterado para 'decodificar_imagem']
+            decodificar_imagem(imagem_analise,linha_inicial + a1, coluna_inicial, a2, l1); // 
         }
         if (a2 > 0 && l2 > 0){ //se a altura inferior e a largura direita forem maiores do que 0
             //Quadrante 4 (inferior direito), começa da linha inicial + a1 e coluna inicial + l1, até a2 e l2 (altura inferior e largura direita)
